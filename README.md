@@ -1,5 +1,5 @@
-# MineSweeper_Book
-扫雷_Java课设小项目  
+# 扫雷
+Java课设小项目  
 使用SwingGUI框架编写  
 排行榜使用JDBC Driver连接数据库
 ## 说明
