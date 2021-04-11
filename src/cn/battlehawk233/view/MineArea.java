@@ -1,6 +1,6 @@
 package cn.battlehawk233.view;
 
-import cn.battlehawk233.controller.MinesController;
+import cn.battlehawk233.controller.MinesControllerImpl;
 import cn.battlehawk233.model.Block;
 import cn.battlehawk233.model.CustomDifficulty;
 import cn.battlehawk233.model.Difficulty;
@@ -12,7 +12,7 @@ import java.awt.event.ActionListener;
 
 public class MineArea extends JPanel implements ActionListener, ViewForMineArea {
     private final JButton reStart;
-    private MinesController minesController;
+    private MinesControllerImpl minesController;
     private final JPanel pCenter;
     private final JPanel pNorth;
     private final JTextField showTime;
@@ -55,7 +55,7 @@ public class MineArea extends JPanel implements ActionListener, ViewForMineArea 
         initMineArea();
         pCenter.setLayout(new GridLayout(row, column));
         progressBar.setMaximum(mineCount);
-        minesController = new MinesController(difficulty, this);
+        minesController = new MinesControllerImpl(difficulty, this);
         repaint();
     }
 
@@ -75,7 +75,7 @@ public class MineArea extends JPanel implements ActionListener, ViewForMineArea 
         initMineArea();
         pCenter.setLayout(new GridLayout(row, column));
         progressBar.setMaximum(mineCount);
-        minesController = new MinesController(difficulty, this);
+        minesController = new MinesControllerImpl(difficulty, this);
         repaint();
     }
 

@@ -1,6 +1,5 @@
 package cn.battlehawk233.view;
 
-import cn.battlehawk233.controller.MinesController;
 import cn.battlehawk233.model.Difficulty;
 
 import javax.swing.*;

@@ -1,6 +1,6 @@
 package cn.battlehawk233.model;
 
-import cn.battlehawk233.controller.MinesController;
+import cn.battlehawk233.controller.MinesControllerImpl;
 import cn.battlehawk233.view.ViewForBlock;
 
 /**
@@ -15,9 +15,9 @@ public class Block {
     private boolean isMark = false;
     private boolean isOpen = false;
     private ViewForBlock blockView;
-    private MinesController controller;
+    private MinesControllerImpl controller;
 
-    public Block(int x, int y, MinesController controller) {
+    public Block(int x, int y, MinesControllerImpl controller) {
         this.x = x;
         this.y = y;
         this.controller = controller;
@@ -75,7 +75,7 @@ public class Block {
         return blockView;
     }
 
-    public MinesController getController() {
+    public MinesControllerImpl getController() {
         return controller;
     }
 }
