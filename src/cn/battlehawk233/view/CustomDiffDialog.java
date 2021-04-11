@@ -49,7 +49,7 @@ public class CustomDiffDialog extends JDialog implements ActionListener {
             double column = Integer.parseInt(rowInput.getText());
             int mineCount = Integer.parseInt(mineCountInput.getText());
             double rate = row > column ? row / column : column / row;
-            if (rate >= 1.5f || mineCount > row * column || row > 15 || column > 15)
+            if (rate >= 1.5f || mineCount > row * column || mineCount <= 0 || row > 30 || column > 30)
                 throw new Exception();
             return true;
         } catch (Exception e) {

@@ -13,8 +13,11 @@ public class BlockView extends JPanel implements ViewForBlock, MouseListener {
     private final JButton blockCover;
     private final CardLayout card;
     private Block block;
-    public static final String markIcon = "img/flag.png";
-    public static final String mineIcon = "img/mine.png";
+    public static final String markIcon = "/cn/battlehawk233/res/img/flag.png";
+    public static final String mineIcon = "/cn/battlehawk233/res/img/mine.png";
+    public static final String markSound = "/cn/battlehawk233/res/sounds/flag.wav";
+    public static final String normalSound = "/cn/battlehawk233/res/sounds/normal.wav";
+    public static final String mineSound = "/cn/battlehawk233/res/sounds/mine.wav";
 
     public BlockView() {
         card = new CardLayout();

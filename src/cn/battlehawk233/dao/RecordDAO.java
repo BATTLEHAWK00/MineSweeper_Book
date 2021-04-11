@@ -37,16 +37,16 @@ public class RecordDAO {
             sta = conn.prepareStatement(sql);
             sta.executeUpdate();
             conn.close();
-        }catch (Exception ignored){
+        } catch (Exception ignored) {
 
         }
     }
 
-    private int verifyScore(int time) {
+    private int verifyScore(int time, Difficulty difficulty) {
         AtomicInteger amount = new AtomicInteger();
         JDBCUtil.getInstance().UseConn(connection -> {
             SQLOperation operation = new SQLOperation();
-            operation.setSQL(String.format("SELECT * FROM %s WHERE p_time < %d", TABLE_NAME, time));
+            operation.setSQL(String.format("SELECT * FROM %s WHERE p_time < %d and p_diff = '%s'", TABLE_NAME, time, difficulty.name()));
             List<Map<String, Object>> dict = operation.ExecuteQuery();
             amount.set(dict.size());
         });
@@ -55,7 +55,7 @@ public class RecordDAO {
 
     public boolean addRecord(String name, int time, Difficulty difficulty) {
         AtomicBoolean ok = new AtomicBoolean(false);
-        int amount = verifyScore(time);
+        int amount = verifyScore(time, difficulty);
         if (amount >= HERO_NUMBER) {
             ok.set(false);
         } else {

@@ -3,8 +3,8 @@ package cn.battlehawk233.controller;
 import cn.battlehawk233.model.Block;
 import cn.battlehawk233.model.CustomDifficulty;
 import cn.battlehawk233.model.Difficulty;
-import cn.battlehawk233.view.RecordWritingWindow;
-import cn.battlehawk233.view.ViewForMineArea;
+import cn.battlehawk233.util.AudioUtil;
+import cn.battlehawk233.view.*;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -135,8 +135,11 @@ public class MinesControllerImpl implements MinesController {
             isStarted = true;
         }
         if (block.isMine()) {
+            AudioUtil.getInstance().PlaySound(BlockView.mineSound);
+            JOptionPane.showMessageDialog((JPanel) mineArea, "Boom!!!\n你输了!");
             GameEnd();
         } else {
+            AudioUtil.getInstance().PlaySound(BlockView.normalSound);
             if (block.getAroundMineNumber() == 0) {
                 List<Block> list = getNonMineBlocksAround(block);
                 for (Block i : list) {
@@ -159,7 +162,6 @@ public class MinesControllerImpl implements MinesController {
         mineArea.updateTimer(0);
         markCount = 0;
         mineArea.updateMarkCount(markCount);
-        JOptionPane.showMessageDialog((JPanel) mineArea, "Boom!!!\n你输了!");
         for (Block i : blockList) {
             i.getBlockView().seeBlockNameOrIcon();
         }
@@ -174,6 +176,7 @@ public class MinesControllerImpl implements MinesController {
         } else {
             if (markCount == getMineCount())
                 return;
+            AudioUtil.getInstance().PlaySound(BlockView.markSound);
             markCount++;
             block.setMark(true);
         }
@@ -225,10 +228,17 @@ public class MinesControllerImpl implements MinesController {
             System.out.println("You Win!");
             timer.stop();
             JOptionPane.showMessageDialog((JPanel) mineArea, "你赢了!耗时:" + timeElapsed + "秒");
+            GameEnd();
             if (difficulty != Difficulty.CUSTOM) {
                 record.setDifficulty(difficulty);
                 record.setTime(timeElapsed);
                 record.setVisible(true);
+                new NextLevelDialog((obj) -> {
+                    if (difficulty == Difficulty.EASY)
+                        ((MineArea) mineArea).initMineArea(Difficulty.MEDIUM);
+                    else if (difficulty == Difficulty.MEDIUM)
+                        ((MineArea) mineArea).initMineArea(Difficulty.HARD);
+                });
             }
         }
     }
