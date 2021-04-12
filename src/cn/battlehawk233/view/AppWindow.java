@@ -15,8 +15,8 @@ public class AppWindow extends JFrame implements ActionListener {
     private JMenu startMenu, rankingMenu;
     private JMenuItem easyRecordItem, mediumRecordItem, hardRecordItem;
     private JMenuItem easyStartItem, mediumStartItem, hardStartItem, customStartItem;
-    private final MineArea mineArea;
-    private final ShowRecord showRecord;
+    private final MineAreaDialog mineArea;
+    private final ShowRecordDialog showRecord;
 
     private void initMenu() {
         //组件初始化
@@ -60,10 +60,10 @@ public class AppWindow extends JFrame implements ActionListener {
         //初始化菜单
         initMenu();
         //初始化雷区
-        mineArea = new MineArea();
+        mineArea = new MineAreaDialog();
         this.add(mineArea, BorderLayout.CENTER);
         //初始化排行榜窗口
-        showRecord = new ShowRecord();
+        showRecord = new ShowRecordDialog();
         //初始化主窗口
         setBounds(300, 100, 500, 450);
         setVisible(true);

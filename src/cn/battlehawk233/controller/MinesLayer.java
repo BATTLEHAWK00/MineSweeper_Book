@@ -6,14 +6,14 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class LayMines {
-    private static final LayMines layMines = new LayMines();
+public class MinesLayer {
+    private static final MinesLayer layMines = new MinesLayer();
 
-    public static LayMines getInstance() {
+    public static MinesLayer getInstance() {
         return layMines;
     }
 
-    private LayMines() {
+    private MinesLayer() {
     }
 
     public void InitBlock(Block[][] block) {

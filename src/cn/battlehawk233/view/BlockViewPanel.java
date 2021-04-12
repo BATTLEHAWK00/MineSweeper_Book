@@ -8,7 +8,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-public class BlockView extends JPanel implements ViewForBlock, MouseListener {
+public class BlockViewPanel extends JPanel implements ViewForBlock, MouseListener {
     private final JLabel blockNameOrIcon;
     private final JButton blockCover;
     private final CardLayout card;
@@ -19,7 +19,7 @@ public class BlockView extends JPanel implements ViewForBlock, MouseListener {
     public static final String normalSound = "/cn/battlehawk233/res/sounds/normal.wav";
     public static final String mineSound = "/cn/battlehawk233/res/sounds/mine.wav";
 
-    public BlockView() {
+    public BlockViewPanel() {
         card = new CardLayout();
         setLayout(card);
         blockNameOrIcon = new JLabel("", JLabel.CENTER);
@@ -41,7 +41,7 @@ public class BlockView extends JPanel implements ViewForBlock, MouseListener {
     @Override
     public void setDataOnView() {
         if (block.isMine())
-            blockNameOrIcon.setIcon(MyUtil.getInstance().getIcon(BlockView.class, BlockView.mineIcon));
+            blockNameOrIcon.setIcon(MyUtil.getInstance().getIcon(BlockViewPanel.class, BlockViewPanel.mineIcon));
         else {
             int n = block.getAroundMineNumber();
             if (n >= 1)
@@ -66,7 +66,7 @@ public class BlockView extends JPanel implements ViewForBlock, MouseListener {
     @Override
     public void seeBlockMark() {
         if (block.isMark())
-            blockCover.setIcon(MyUtil.getInstance().getIcon(BlockView.class, BlockView.markIcon));
+            blockCover.setIcon(MyUtil.getInstance().getIcon(BlockViewPanel.class, BlockViewPanel.markIcon));
         else
             blockCover.setIcon(null);
         validate();

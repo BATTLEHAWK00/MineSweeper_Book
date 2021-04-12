@@ -3,7 +3,7 @@ package cn.battlehawk233.model;
 /**
  * 自定义难度类
  */
-public class CustomDifficulty {
+public class CustomDifficulty implements IDifficulty {
     private final int row;
     private final int column;
     private final int mineCount;
@@ -24,5 +24,10 @@ public class CustomDifficulty {
 
     public int getRow() {
         return row;
+    }
+
+    @Override
+    public String getName() {
+        return "CUSTOM";
     }
 }

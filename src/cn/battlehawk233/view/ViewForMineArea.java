@@ -7,5 +7,7 @@ public interface ViewForMineArea {
 
     void updateMarkCount(int cnt);
 
+    void updateProgress(int cnt);
+
     void initMines(Block[][] blocks);
 }

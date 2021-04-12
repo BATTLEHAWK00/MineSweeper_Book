@@ -2,15 +2,14 @@ package cn.battlehawk233.view;
 
 import cn.battlehawk233.controller.MinesControllerImpl;
 import cn.battlehawk233.model.Block;
-import cn.battlehawk233.model.CustomDifficulty;
-import cn.battlehawk233.model.Difficulty;
+import cn.battlehawk233.model.IDifficulty;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class MineArea extends JPanel implements ActionListener, ViewForMineArea {
+public class MineAreaDialog extends JPanel implements ActionListener, ViewForMineArea {
     private final JButton reStart;
     private MinesControllerImpl minesController;
     private final JPanel pCenter;
@@ -18,14 +17,12 @@ public class MineArea extends JPanel implements ActionListener, ViewForMineArea 
     private final JTextField showTime;
     private final JTextField showMarkedMineCount;
     private final JProgressBar progressBar;
-    private final RecordWritingWindow record;
+    private final RecordWritingDialog record;
     private int row, column, mineCount;
-    // TODO: 2021/3/31 添加音乐
-    //PlayMusic playMusic;
 
-    public MineArea() {
+    public MineAreaDialog() {
         //组件初始化
-        record = new RecordWritingWindow();
+        record = new RecordWritingDialog();
         reStart = new JButton("重新开始");
         showTime = new JTextField(5);
         showMarkedMineCount = new JTextField(5);
@@ -48,13 +45,13 @@ public class MineArea extends JPanel implements ActionListener, ViewForMineArea 
         add(pCenter, BorderLayout.CENTER);
     }
 
-    public void initMineArea(CustomDifficulty difficulty) {
+    public void initMineArea(IDifficulty difficulty) {
         this.row = difficulty.getRow();
         this.column = difficulty.getColumn();
         this.mineCount = difficulty.getMineCount();
         initMineArea();
         pCenter.setLayout(new GridLayout(row, column));
-        progressBar.setMaximum(mineCount);
+        progressBar.setMaximum(row * column - mineCount);
         minesController = new MinesControllerImpl(difficulty, this);
         repaint();
     }
@@ -66,17 +63,6 @@ public class MineArea extends JPanel implements ActionListener, ViewForMineArea 
         if (minesController != null)
             minesController.Dispose();
         minesController = null;
-    }
-
-    public void initMineArea(Difficulty difficulty) {
-        this.row = difficulty.getRow();
-        this.column = difficulty.getColumn();
-        this.mineCount = difficulty.getMineCount();
-        initMineArea();
-        pCenter.setLayout(new GridLayout(row, column));
-        progressBar.setMaximum(mineCount);
-        minesController = new MinesControllerImpl(difficulty, this);
-        repaint();
     }
 
     @Override
@@ -98,6 +84,10 @@ public class MineArea extends JPanel implements ActionListener, ViewForMineArea 
     @Override
     public void updateMarkCount(int cnt) {
         showMarkedMineCount.setText("" + (mineCount - cnt));
+    }
+
+    @Override
+    public void updateProgress(int cnt) {
         progressBar.setValue(cnt);
     }
 
@@ -105,7 +95,7 @@ public class MineArea extends JPanel implements ActionListener, ViewForMineArea 
     public void initMines(Block[][] blocks) {
         for (Block[] i : blocks) {
             for (Block j : i) {
-                BlockView view = new BlockView();
+                BlockViewPanel view = new BlockViewPanel();
                 view.acceptBlock(j);
                 j.setBlockView(view);
                 view.setDataOnView();

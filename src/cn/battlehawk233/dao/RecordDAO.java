@@ -2,6 +2,7 @@ package cn.battlehawk233.dao;
 
 
 import cn.battlehawk233.model.Difficulty;
+import cn.battlehawk233.model.IDifficulty;
 import cn.battlehawk233.util.JDBCUtil;
 import cn.battlehawk233.util.SQLOperation;
 
@@ -32,7 +33,7 @@ public class RecordDAO {
     public RecordDAO() {
         Connection conn = JDBCUtil.getInstance().GetConn();
         String sql = String.format("CREATE TABLE %s (p_name varchar(50),p_time int,p_diff varchar(10))", TABLE_NAME);
-        PreparedStatement sta = null;
+        PreparedStatement sta;
         try {
             sta = conn.prepareStatement(sql);
             sta.executeUpdate();
@@ -42,25 +43,25 @@ public class RecordDAO {
         }
     }
 
-    private int verifyScore(int time, Difficulty difficulty) {
+    private int verifyScore(int time, IDifficulty difficulty) {
         AtomicInteger amount = new AtomicInteger();
         JDBCUtil.getInstance().UseConn(connection -> {
             SQLOperation operation = new SQLOperation();
-            operation.setSQL(String.format("SELECT * FROM %s WHERE p_time < %d and p_diff = '%s'", TABLE_NAME, time, difficulty.name()));
+            operation.setSQL(String.format("SELECT * FROM %s WHERE p_time < %d and p_diff = '%s'", TABLE_NAME, time, difficulty.getName()));
             List<Map<String, Object>> dict = operation.ExecuteQuery();
             amount.set(dict.size());
         });
         return amount.get();
     }
 
-    public boolean addRecord(String name, int time, Difficulty difficulty) {
+    public boolean addRecord(String name, int time, IDifficulty difficulty) {
         AtomicBoolean ok = new AtomicBoolean(false);
         int amount = verifyScore(time, difficulty);
         if (amount >= HERO_NUMBER) {
             ok.set(false);
         } else {
             JDBCUtil.getInstance().UseConn(connection -> {
-                String sql = String.format("INSERT INTO %s VALUES ('%s',%d,'%s')", TABLE_NAME, name, time, difficulty.name());
+                String sql = String.format("INSERT INTO %s VALUES ('%s',%d,'%s')", TABLE_NAME, name, time, difficulty.getName());
                 SQLOperation operation = new SQLOperation();
                 operation.setSQL(sql);
                 operation.ExecuteUpdate();
@@ -70,10 +71,10 @@ public class RecordDAO {
         return ok.get();
     }
 
-    public List<Map<String, Object>> queryRecord(Difficulty difficulty) {
+    public List<Map<String, Object>> queryRecord(IDifficulty difficulty) {
         AtomicReference<List<Map<String, Object>>> record = new AtomicReference<>();
         JDBCUtil.getInstance().UseConn(connection -> {
-            String sql = String.format("SELECT * FROM %s WHERE p_diff='%s' ORDER BY p_time", TABLE_NAME, difficulty.name());
+            String sql = String.format("SELECT * FROM %s WHERE p_diff='%s' ORDER BY p_time", TABLE_NAME, difficulty.getName());
             SQLOperation operation = new SQLOperation();
             operation.setSQL(sql);
             record.set(operation.ExecuteQuery());

@@ -8,11 +8,11 @@ import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
-public class ShowRecord extends JDialog {
+public class ShowRecordDialog extends JDialog {
     private List<Map<String, Object>> record;
     private final JTextArea showMess;
 
-    public ShowRecord() {
+    public ShowRecordDialog() {
         showMess = new JTextArea();
         showMess.setFont(new Font("楷体", Font.BOLD, 15));
         add(new JScrollPane(showMess));

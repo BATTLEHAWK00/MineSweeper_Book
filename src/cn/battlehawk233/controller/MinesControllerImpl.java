@@ -1,17 +1,15 @@
 package cn.battlehawk233.controller;
 
 import cn.battlehawk233.model.Block;
-import cn.battlehawk233.model.CustomDifficulty;
 import cn.battlehawk233.model.Difficulty;
+import cn.battlehawk233.model.IDifficulty;
 import cn.battlehawk233.util.AudioUtil;
 import cn.battlehawk233.view.*;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.function.Consumer;
 
 
@@ -20,11 +18,12 @@ import java.util.function.Consumer;
  * Controller
  */
 public class MinesControllerImpl implements MinesController {
-    private Difficulty difficulty;
+    private IDifficulty difficulty;
     private int row, column, mineCount;
     private int markCount = 0;
+    private int openCount = 0;
     private int timeElapsed = 0;
-    private RecordWritingWindow record = new RecordWritingWindow();
+    private RecordWritingDialog record = new RecordWritingDialog();
     private List<Block> blockList = new ArrayList<>();
     private Block[][] blocks;
     private List<Consumer<Object>> timerEvt = new ArrayList<>();
@@ -34,18 +33,6 @@ public class MinesControllerImpl implements MinesController {
             i.accept(evt);
     });
     private boolean isStarted = false;
-
-    //初始化雷区
-    public MinesControllerImpl(Difficulty difficulty, ViewForMineArea mineArea) {
-        this.difficulty = difficulty;
-        this.mineArea = mineArea;
-        if (difficulty != Difficulty.CUSTOM) {
-            this.row = difficulty.getRow();
-            this.column = difficulty.getColumn();
-            this.mineCount = difficulty.getMineCount();
-        }
-        initController();
-    }
 
     public int getRow() {
         return row;
@@ -59,11 +46,11 @@ public class MinesControllerImpl implements MinesController {
         return mineCount;
     }
 
-    public MinesControllerImpl(CustomDifficulty difficulty, ViewForMineArea mineArea) {
+    public MinesControllerImpl(IDifficulty difficulty, ViewForMineArea mineArea) {
         this.row = difficulty.getRow();
         this.column = difficulty.getColumn();
         this.mineCount = difficulty.getMineCount();
-        this.difficulty = Difficulty.CUSTOM;
+        this.difficulty = difficulty;
         this.mineArea = mineArea;
         initController();
     }
@@ -77,7 +64,7 @@ public class MinesControllerImpl implements MinesController {
                 blocks[i][j] = block;
             }
         }
-        LayMines.getInstance().layMines(blocks, mineCount);
+        MinesLayer.getInstance().layMines(blocks, mineCount);
         mineArea.initMines(blocks);
         mineArea.updateMarkCount(0);
         mineArea.updateTimer(0);
@@ -91,35 +78,35 @@ public class MinesControllerImpl implements MinesController {
     }
 
     //连锁反应
-    public List<Block> getNonMineBlocksAround(Block block) {
-        Block[][] blocks = new Block[row][column];
-        List<Block> list = new ArrayList<>();
-        for (Block i : this.blockList) {
-            blocks[i.getX()][i.getY()] = i;
-        }
-        //BFS搜索临近单元
+    public Set<Block> getNonMineBlocksAround(Block block) {
+        //BFS初始化
+        Set<Block> list = new HashSet<>();
         Queue<Block> q = new LinkedList<>();
         q.add(block);
+        list.add(block);
         while (!q.isEmpty()) {
-            Block b = q.remove();
-            list.add(b);
-            int x = b.getX();
-            int y = b.getY();
+            //取出队列元素
+            Block current = q.remove();
+            list.add(current);
+            int x = current.getX();
+            int y = current.getY();
+            //定义方向向量
             int[] Xs = {-1, 0, 1, 0, -1, 1, -1, 1};
             int[] Ys = {0, 1, 0, -1, -1, 1, 1, -1};
             for (int i = 0; i < Xs.length; i++) {
+                //边界处理
                 int px = x + Xs[i], py = y + Ys[i];
                 if (px < 0 || px >= row)
                     continue;
                 if (py < 0 || py >= column)
                     continue;
-                if (!blocks[px][py].isMine() && !blocks[px][py].isMark() && !list.contains(blocks[px][py]))
-                    if (blocks[px][py].getAroundMineNumber() != 0)
-                        list.add(blocks[px][py]);
-                    else {
-                        list.add(blocks[px][py]);
-                        q.add(blocks[px][py]);
-                    }
+                //遍历周围单元
+                Block b = blocks[px][py];
+                if (!b.isMine() && !b.isMark() && !list.contains(b) && !b.isOpen()) {
+                    if (b.getAroundMineNumber() == 0)
+                        q.add(b);
+                    list.add(b);
+                }
             }
         }
         return list;
@@ -128,40 +115,52 @@ public class MinesControllerImpl implements MinesController {
     //处理挖雷事件
     @Override
     public void onMineScout(Block block) {
+        //无效条件处理(标记方块不能被点击)
         if (block.isMark())
             return;
+        //若第一个方块被点击，则开始计时
         if (!isStarted) {
             timer.start();
             isStarted = true;
         }
         if (block.isMine()) {
-            AudioUtil.getInstance().PlaySound(BlockView.mineSound);
+            //玩家遇雷时的处理
+            AudioUtil.getInstance().PlaySound(BlockViewPanel.mineSound);
             JOptionPane.showMessageDialog((JPanel) mineArea, "Boom!!!\n你输了!");
             GameEnd();
         } else {
-            AudioUtil.getInstance().PlaySound(BlockView.normalSound);
+            //玩家未遇雷时的处理
+            AudioUtil.getInstance().PlaySound(BlockViewPanel.normalSound);
+            Set<Block> list = new HashSet<Block>() {{
+                add(block);
+            }};
+            //若该单元没有雷，则触发连锁反应
             if (block.getAroundMineNumber() == 0) {
-                List<Block> list = getNonMineBlocksAround(block);
-                for (Block i : list) {
-                    i.getBlockView().seeBlockNameOrIcon();
-                    i.setOpen(true);
-                }
-            } else {
-                block.getBlockView().seeBlockNameOrIcon();
-                block.setOpen(true);
+                list = getNonMineBlocksAround(block);
             }
+            for (Block i : list) {
+                i.getBlockView().seeBlockNameOrIcon();
+                i.setOpen(true);
+                openCount++;
+            }
+            //视图层进度条更新
+            mineArea.updateProgress(openCount);
         }
+        //判断游戏是否胜利
         verifyWin();
     }
 
     //处理游戏结束
     public void GameEnd() {
+        //重置数据及视图层
         timer.stop();
         isStarted = false;
         timeElapsed = 0;
         mineArea.updateTimer(0);
         markCount = 0;
+        openCount = 0;
         mineArea.updateMarkCount(markCount);
+        mineArea.updateProgress(0);
         for (Block i : blockList) {
             i.getBlockView().seeBlockNameOrIcon();
         }
@@ -171,23 +170,26 @@ public class MinesControllerImpl implements MinesController {
     @Override
     public void onMineMark(Block block) {
         if (block.isMark()) {
+            //取消标记
             markCount--;
             block.setMark(false);
         } else {
+            //打上标记
             if (markCount == getMineCount())
                 return;
-            AudioUtil.getInstance().PlaySound(BlockView.markSound);
+            AudioUtil.getInstance().PlaySound(BlockViewPanel.markSound);
             markCount++;
             block.setMark(true);
         }
+        //更新视图层
         mineArea.updateMarkCount(markCount);
         block.getBlockView().seeBlockMark();
-        verifyWin();
     }
 
     //处理析构对象
     @Override
     public void Dispose() {
+        //移除计时器事件
         timer.stop();
         for (ActionListener actionListener : timer.getActionListeners()) {
             timer.removeActionListener(actionListener);
@@ -202,7 +204,9 @@ public class MinesControllerImpl implements MinesController {
         timeElapsed = 0;
         mineArea.updateTimer(0);
         markCount = 0;
+        openCount = 0;
         mineArea.updateMarkCount(markCount);
+        mineArea.updateProgress(0);
         for (Block i : blockList) {
             i.setOpen(false);
             i.setMark(false);
@@ -214,32 +218,25 @@ public class MinesControllerImpl implements MinesController {
     //检测玩家是否赢得该场游戏
     @Override
     public void verifyWin() {
-        boolean isOk = true;
-
-        int number = 0, total = column * row - mineCount;
-        for (Block i : blockList)
-            if (i.isOpen()) {
-                number++;
-            }
-        if (number != total)
-            isOk = false;
-
-        if (isOk) {
+        if (openCount == column * row - mineCount) {
+            //处理游戏胜利
             System.out.println("You Win!");
             timer.stop();
             JOptionPane.showMessageDialog((JPanel) mineArea, "你赢了!耗时:" + timeElapsed + "秒");
-            GameEnd();
-            if (difficulty != Difficulty.CUSTOM) {
+            if (!difficulty.getName().equals("CUSTOM")) {
+                //弹出成绩记录窗口
                 record.setDifficulty(difficulty);
                 record.setTime(timeElapsed);
                 record.setVisible(true);
+                //询问是否进行下一关
                 new NextLevelDialog((obj) -> {
                     if (difficulty == Difficulty.EASY)
-                        ((MineArea) mineArea).initMineArea(Difficulty.MEDIUM);
+                        ((MineAreaDialog) mineArea).initMineArea(Difficulty.MEDIUM);
                     else if (difficulty == Difficulty.MEDIUM)
-                        ((MineArea) mineArea).initMineArea(Difficulty.HARD);
+                        ((MineAreaDialog) mineArea).initMineArea(Difficulty.HARD);
                 });
             }
+            GameEnd();
         }
     }
 }
